@@ -1,0 +1,45 @@
+# Reference
+
+https://books.google.nl/books?id=jfMqCgAAQBAJ&pg=PA135&lpg=PA135&dq=sqlite+query+for+chrome+
+downloads&source=bl&ots=YdwHgHdE_j&sig=
+ACfU3U3WSPrnsEhPEYYu71m55g1I64qMvg&hl=en&sa=X&ved=2ahUKEwjXm--D0-bpAhVG4qQKHcApAqQQ6AEwDHoECAoQAQ#v=onepage&q=sqlite%20query%20for%20chrome%20downloads&f=false
+
+# Query to find the specific downloads dirctory with urls
+
+SELECT strftime('%Y-%m-%dT%H:%M:%S',(d.start_time/1000000)-11644473600, 'unixepoch'), dc.url, d.target_path,
+ d.danger_type, d.opened from downloads d INNER join downloads_url_chains dc on dc.id = d.id ;
+
+# Query to find the specific downloads file name
+
+SELECT strftime('%Y-%m-%dT%H:%M:%S',(d.start_time/1000000)-11644473600, 'unixepoch'), dc.url, d.target_path,
+ d.danger_type, d.opened from downloads d INNER join downloads_url_chains dc on dc.id = d.id  
+ where target_path like '%sql%';
+ 
+ 
+ #### Chrome from different Path Location ######
+ 
+ #!/bin/bash
+
+FILE="/Users/$1/Library/Application Support/Google/Chrome/Default/History"
+
+if test -f "$FILE"; then
+
+   cp "/Users/$1/Library/Application Support/Google/Chrome/Default/History" /tmp/History
+   echo -e "\n"
+   echo -e "The URL for the download file is\n"
+   /tmp/sqlite3 "/tmp/History" "SELECT strftime('%Y-%m-%dT%H:%M:%S',(d.start_time/1000000)-11644473600, 'unixepoch'), dc.url, d.target_path, d.danger_type, d.opened from downloads d INNER join downloads_url_chains dc on dc.id = d.id where target_path like '%$2%';" |  tr "|" "\n"  | grep http
+   echo -e "\n"
+   echo -e "Date and Time and the file path\n"
+   /tmp/sqlite3 "/tmp/History" "SELECT strftime('%Y-%m-%dT%H:%M:%S',(d.start_time/1000000)-11644473600, 'unixepoch'), dc.url, d.target_path, d.danger_type, d.opened from downloads d INNER join downloads_url_chains dc on dc.id = d.id where target_path like '%$2%';" |  tr "|" "\n" | grep -v http | head -2
+   echo -e "\n"
+
+else 
+   cp "/Users/$1/Library/Application Support/Google/Chrome/Profile 1/History" /tmp/History
+   echo -e "\n"
+   echo -e "\n"
+   echo -e "The URL for the download file is\n"
+   /tmp/sqlite3 "/tmp/History" "SELECT strftime('%Y-%m-%dT%H:%M:%S',(d.start_time/1000000)-11644473600, 'unixepoch'), dc.url, d.target_path, d.danger_type, d.opened from downloads d INNER join downloads_url_chains dc on dc.id = d.id where target_path like '%$2%';" |  tr "|" "\n"  | grep http
+   echo -e "\n"
+   /tmp/sqlite3 "/tmp/History" "SELECT strftime('%Y-%m-%dT%H:%M:%S',(d.start_time/1000000)-11644473600, 'unixepoch'), dc.url, d.target_path, d.danger_type, d.opened from downloads d INNER join downloads_url_chains dc on dc.id = d.id where target_path like '%$2%';" |  tr "|" "\n" | grep -v http | head -2
+   echo -e "\n"
+fi
