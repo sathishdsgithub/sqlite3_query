@@ -43,3 +43,37 @@ else
    /tmp/sqlite3 "/tmp/History" "SELECT strftime('%Y-%m-%dT%H:%M:%S',(d.start_time/1000000)-11644473600, 'unixepoch'), dc.url, d.target_path, d.danger_type, d.opened from downloads d INNER join downloads_url_chains dc on dc.id = d.id where target_path like '%$2%';" |  tr "|" "\n" | grep -v http | head -2
    echo -e "\n"
 fi
+
+
+###################################################################################################
+Using Function
+
+#!/bin/bash
+
+arg1=$1
+arg2=$2
+FILE="/Users/$arg1/Library/Application Support/Google/Chrome/Default/History"
+
+chrome_parse()
+{
+echo -e "\n"
+echo -e "The file was downloaded from the below reference URL \n"
+                /tmp/sqlite3 "/tmp/History" "SELECT strftime('%Y-%m-%dT%H:%M:%S',(d.start_time/1000000)-11644473600, 'unixepoch'), dc.url, d.target_path, d.danger_type, d.opened from downloads d INNER join downloads_url_chains dc on dc.id = d.id where target_path like '%$arg2%';" |  tr "|" "\n"  | grep http
+                echo -e "\n"
+                echo -e "Date and Time and File Path \n"
+                /tmp/sqlite3 "/tmp/History" "SELECT strftime('%Y-%m-%dT%H:%M:%S',(d.start_time/1000000)-11644473600, 'unixepoch'), dc.url, d.target_path, d.danger_type, d.opened from downloads d INNER join downloads_url_chains dc on dc.id = d.id where target_path like '%$arg2%';" |  tr "|" "\n" | grep -v http | head -2
+                echo -e "\n"
+}
+if test -f "$FILE" ;
+
+then
+
+           cp "/Users/$arg1/Library/Application Support/Google/Chrome/Default/History" /tmp/History
+           chrome_parse  $arg2
+
+
+else 
+           cp "/Users/$arg1/Library/Application Support/Google/Chrome/Profile 1/History" /tmp/History
+           chrome_parse $arg2
+fi
+
