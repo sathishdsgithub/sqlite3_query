@@ -77,3 +77,50 @@ else
            chrome_parse $arg2
 fi
 
+
+###################################################################################################
+#!/bin/bash
+
+arg1=$1
+arg2=$2
+FILE="/Users/$arg1/Library/Application Support/Google/Chrome/Default/History"
+
+Lsq_chrome_parse()
+{
+  echo -e "\n"
+  echo -e "The file was downloaded from the below reference URL \n"
+                /tmp/sqlite3 "/tmp/History" "SELECT strftime('%Y-%m-%dT%H:%M:%S',(d.start_time/1000000)-11644473600, 'unixepoch'), dc.url,\
+                 d.target_path, d.danger_type, d.opened from downloads d INNER join downloads_url_chains dc on dc.id = d.id where target_path like '%$arg2%';"\
+                  |  tr "|" "\n"  | grep http
+  echo -e "\n"
+  echo -e "Date and Time and File Path \n"
+                /tmp/sqlite3 "/tmp/History" "SELECT strftime('%Y-%m-%dT%H:%M:%S',(d.start_time/1000000)-11644473600, 'unixepoch'), dc.url, \
+                d.target_path, d.danger_type, d.opened from downloads d INNER join downloads_url_chains dc on dc.id = d.id where target_path like '%$arg2%';"\
+                 |  tr "|" "\n" | grep -v http | head -2
+  echo -e "\n"
+  echo -e "\n"
+  echo -e "LSQuarantine event \n"
+				/tmp/sqlite3 "/Users/$arg1/Library/Preferences/com.apple.LaunchServices.QuarantineEventsV2" 'select LSQuarantineEventIdentifier, LSQuarantineAgentName, 
+				LSQuarantineAgentBundleIdentifier, LSQuarantineDataURLString, LSQuarantineSenderName, LSQuarantineSenderAddress,
+				LSQuarantineOriginURLString, LSQuarantineTypeNumber, date(LSQuarantineTimeStamp + 978307200, "unixepoch") as downloadedDate
+				from LSQuarantineEvent order by LSQuarantineTimeStamp' | sort | grep -i $arg2  | tr "|" "\n" | grep -v "^0$"
+				echo -e "\n"
+}
+
+if test -f "$FILE" ;
+
+then
+
+           cp "/Users/$arg1/Library/Application Support/Google/Chrome/Default/History" /tmp/History
+	         Lsq_chrome_parse  
+
+
+else 
+           cp "/Users/$arg1/Library/Application Support/Google/Chrome/Profile 1/History" /tmp/History
+	         Lsq_chrome_parse
+fi
+  echo -e "\n"
+  echo -e "Property list utility \n"
+plutil -p /library/receipts/installhistory.plist  | grep -A 3 -B 5 -i "$arg2"
+
+
